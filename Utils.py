@@ -22,4 +22,4 @@ def read_price_from_csv(key, length, bottom=True):
 
 
 if __name__ == '__main__':
-    read_price_from_csv('BD', 12500, False)
+    read_price_from_csv('AD', 12500)
