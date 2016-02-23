@@ -29,6 +29,7 @@ import pandas as pd
 import numpy as np
 import math
 import time
+import csv
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neural_network import BernoulliRBM
 from sklearn.metrics import f1_score, classification_report
@@ -64,6 +65,7 @@ def load_data(file_path):
     #dataframe for label and features
     dfLabel = pd.DataFrame(dtype="float64")
     dfFeature = pd.DataFrame(dtype="float64")
+    file_name = ""
 
     for file in files:
         #1d array to 2d array
@@ -72,6 +74,7 @@ def load_data(file_path):
         numCol= binary[1]
         binary = np.delete(binary, [0, 1])
         binary = binary.reshape((numRow, numCol))
+        file_name = file
 
         #concatenate all label and features
         tempLabel = pd.DataFrame(binary[:params['n_row'],0])
@@ -85,7 +88,7 @@ def load_data(file_path):
     label = dfLabel.as_matrix()
     feature = dfFeature.as_matrix()
 
-    return label, feature
+    return label, feature, file_name
 
 def train_test_split(x, y):
     '''
@@ -161,7 +164,9 @@ def random_forest(x_train, x_test, y_train):
     return y_pred
 
 
-label, feature = load_data(params['path'])
+label, feature, symbol = load_data(params['path'])
+pos = symbol.rfind('/')+1
+symbol = symbol[pos:pos+2]
 
 #scales values in features so that they range from 0 to 1
 minmaxScaler = MinMaxScaler()
@@ -186,6 +191,13 @@ print("feature", feature.shape)
 
 x_train, x_test, y_train, y_test = train_test_split(feature, label)
 y_pred = random_forest(x_train, x_test, y_train)
+
+filename = 'PRED_'+symbol+'-5.csv'
+with open(filename, 'wb') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')
+    for item in y_pred:
+        writer.writerow(item)
+
 print_f1_score(y_test, y_pred)
 classification_error(y_test, y_pred)
 
