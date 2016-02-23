@@ -20,17 +20,17 @@ class RBMRandomForestStrategy(BaseStrategy):
         self.time = data[0]
         self.bars = data[1]
         # read from file
-        # self.signals = []
+        self.signals = []
 
     def generate_signals(self):
         """
         Generate signal according input file
         :return: signals
         """
-        signals = []
+        self.signals = ut.read_signals_from_file(self.symbol)[0]
         # read from file
 
-        return signals
+        return self.signals
 
 
 

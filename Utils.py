@@ -26,7 +26,7 @@ def read_price_from_csv(key, length, bottom=True):
 def read_signals_from_file(key):
     signals = []
 
-    filename = 'data/'+key+'*.csv'
+    filename = 'models/PRED_'+key+'*.csv'
     filenames = glob.glob(filename)
 
     if len(filenames) >= 1:
@@ -34,9 +34,10 @@ def read_signals_from_file(key):
         with open(filename, 'rb') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             rows = list(reader)
-            signals = np.array(rows)
+            signals = np.transpose(np.array(rows))
 
     return signals
 
 if __name__ == '__main__':
     print(read_price_from_csv('AD', 12500))
+    print(read_signals_from_file('AD'))
