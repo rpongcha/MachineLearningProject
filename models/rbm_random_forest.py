@@ -195,8 +195,8 @@ y_pred = random_forest(x_train, x_test, y_train)
 filename = 'PRED_'+symbol+'-5.csv'
 with open(filename, 'wb') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
-    for item in y_pred:
-        writer.writerow(item)
+    for i in range(len(y_pred)):
+        writer.writerow((y_pred[i], y_test[i][0]))
 
 print_f1_score(y_test, y_pred)
 classification_error(y_test, y_pred)

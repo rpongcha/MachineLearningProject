@@ -31,7 +31,7 @@ import time
 from sklearn.metrics import f1_score, classification_report
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
-import sys
+import csv
 import os
 
 #np.set_printoptions(edgeitems=30)
@@ -185,12 +185,11 @@ if __name__ == "__main__":
         x = pca(x)
     x_train, x_test, y_train, y_test = train_test_split(x, y)
     y_pred = random_forest(x_train, x_test, y_train, y_test)
-    f = open('data.csv', 'w')
-
-    for i in range(len(x_test)):
-        f.writelines(str(y_test[i]))
-
-    f.close
+    filename = 'PRED_AD-5.csv'
+    with open(filename, 'wb') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        for i in range(len(y_pred)):
+            writer.writerow((y_pred[i], y_test[i][0]))
 
     print_f1_score(y_test, y_pred)
     classification_error(y_test, y_pred) 
