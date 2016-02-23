@@ -5,7 +5,7 @@ import math
 
 class RBMRandomForestPortfolio(BasePortfolio):
 
-    def __init__(self, symbol, bars, signals, initial_capital=100000.0, minimum_cash_on_hand=0.0):
+    def __init__(self, symbol, bars, signals, initial_capital=100000.0, minimum_cash_on_hand=0.0, purchase_size=1.):
         """
         Construct of the class
         :param symbol:
@@ -21,7 +21,7 @@ class RBMRandomForestPortfolio(BasePortfolio):
         self.initial_capital = float(initial_capital)
         self.minimum_cash = float(minimum_cash_on_hand)
         # the purchasing size is fixed at 100 shares
-        self.purchasing_size = 100.
+        self.purchasing_size = purchase_size
         # generate positions from the input signals
         self.positions = self.generate_positions()
 

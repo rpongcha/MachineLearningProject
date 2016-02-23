@@ -140,7 +140,6 @@ def classification_error(y_test, y_pred):
     print(correct / total)
 
 
-
 def random_forest(x_train, x_test, y_train):
     '''
 
@@ -164,44 +163,85 @@ def random_forest(x_train, x_test, y_train):
     return y_pred
 
 
-label, feature, symbol = load_data(params['path'])
-pos = symbol.rfind('/')+1
-symbol = symbol[pos:pos+2]
+def process_machine_learning():
+    i_label, i_feature, i_symbol = load_data(params['path'])
+    i_pos = i_symbol.rfind('/')+1
+    i_symbol = i_symbol[i_pos:i_pos+2]
 
-#scales values in features so that they range from 0 to 1
-minmaxScaler = MinMaxScaler()
-feature = minmaxScaler.fit_transform(feature)
+    #scales values in features so that they range from 0 to 1
+    i_minmaxScaler = MinMaxScaler()
+    i_feature = i_minmaxScaler.fit_transform(i_feature)
 
-print("Dimensions")
-print("label", label.shape)
-print("feature", feature.shape)
+    print("Dimensions")
+    print("label", i_label.shape)
+    print("feature", i_feature.shape)
 
-#feature selection using RBM
+    #feature selection using RBM
 
-start_time = time.time()
+    i_start_time = time.time()
 
-rbm = BernoulliRBM(n_components=params['reduced_feature'], learning_rate=params['learning_rate'], batch_size=params['batchsize'], n_iter=params['n_iter'])
-feature = rbm.fit_transform(feature)
+    i_rbm = BernoulliRBM(n_components=params['reduced_feature'], learning_rate=params['learning_rate'],
+                         batch_size=params['batchsize'], n_iter=params['n_iter'])
+    i_feature = i_rbm.fit_transform(i_feature)
 
-print("RBM--- %s seconds ---" % (time.time() - start_time))
+    print("RBM--- %s seconds ---" % (time.time() - i_start_time))
 
-print("Dimensions after RBM")
-print("label", label.shape)
-print("feature", feature.shape)
+    print("Dimensions after RBM")
+    print("label", i_label.shape)
+    print("feature", i_feature.shape)
 
-x_train, x_test, y_train, y_test = train_test_split(feature, label)
-y_pred = random_forest(x_train, x_test, y_train)
+    i_x_train, i_x_test, i_y_train, i_y_test = train_test_split(i_feature, i_label)
+    i_y_pred = random_forest(i_x_train, i_x_test, i_y_train)
 
-filename = 'PRED_'+symbol+'-5.csv'
-with open(filename, 'wb') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',')
-    for i in range(len(y_pred)):
-        writer.writerow((y_pred[i], y_test[i][0]))
+    i_filename = 'PRED_'+i_symbol+'-5.csv'
+    with open(i_filename, 'wb') as csvfile:
+        i_writer = csv.writer(csvfile, delimiter=',')
+        for i in range(len(i_y_pred)):
+            i_writer.writerow((i_y_pred[i], i_y_test[i][0]))
 
-print_f1_score(y_test, y_pred)
-classification_error(y_test, y_pred)
+    print_f1_score(i_y_test, i_y_pred)
+    classification_error(i_y_test, i_y_pred)
 
-# log.close()
+
+if __name__ == '__main__':
+    label, feature, symbol = load_data(params['path'])
+    pos = symbol.rfind('/')+1
+    symbol = symbol[pos:pos+2]
+
+    #scales values in features so that they range from 0 to 1
+    minmaxScaler = MinMaxScaler()
+    feature = minmaxScaler.fit_transform(feature)
+
+    print("Dimensions")
+    print("label", label.shape)
+    print("feature", feature.shape)
+
+    #feature selection using RBM
+
+    start_time = time.time()
+
+    rbm = BernoulliRBM(n_components=params['reduced_feature'], learning_rate=params['learning_rate'], batch_size=params['batchsize'], n_iter=params['n_iter'])
+    feature = rbm.fit_transform(feature)
+
+    print("RBM--- %s seconds ---" % (time.time() - start_time))
+
+    print("Dimensions after RBM")
+    print("label", label.shape)
+    print("feature", feature.shape)
+
+    x_train, x_test, y_train, y_test = train_test_split(feature, label)
+    y_pred = random_forest(x_train, x_test, y_train)
+
+    filename = 'PRED_'+symbol+'-5.csv'
+    with open(filename, 'wb') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        for i in range(len(y_pred)):
+            writer.writerow((y_pred[i], y_test[i][0]))
+
+    print_f1_score(y_test, y_pred)
+    classification_error(y_test, y_pred)
+
+    # log.close()
 
 
 
