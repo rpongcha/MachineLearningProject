@@ -1,10 +1,12 @@
 import csv
 import glob
 import numpy as np
+import datetime as dt
+import time as tm
 
 
 def read_price_from_csv(key, data_point, bottom=True):
-    prices = []
+    prices = np.zeros((data_point, 2))
     filename = 'data/'+key+'*.csv'
     filenames = glob.glob(filename)
 
@@ -13,12 +15,15 @@ def read_price_from_csv(key, data_point, bottom=True):
         with open(filename, 'rb') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             rows = list(reader)
-            if bottom:
-                start = len(rows) - data_point
-                prices = np.array(rows[start:])
-            else:
-                prices = np.array(rows[0:data_point])
-            prices = np.transpose(prices)
+
+            start = len(rows) - data_point if bottom else 0
+            end = len(rows) if bottom else data_point
+            cnt = 0
+            for i in range(start, end):
+                if cnt < data_point:
+                    prices[cnt, 0] = float(rows[i][0])
+                    prices[cnt, 1] = float(rows[i][1])
+                    cnt += 1
 
     return prices
 
@@ -41,6 +46,19 @@ def read_signals_from_file(key, data_point):
 
     return signals
 
+
+def file_exists(directory, key_name):
+    full_filename = directory+"/"+key_name
+    filenames = glob.glob(full_filename)
+    exists = (len(filenames) >= 1)
+    return exists
+
+
+def convert_to_time(timestamp):
+    time = tm.gmtime(dt.timedelta(timestamp).seconds)
+    return tm.strftime('%T', time)
+
 if __name__ == '__main__':
     print(read_price_from_csv('AD', 12500))
     print(read_signals_from_file('AD', 12500))
+    print(convert_to_time(726835.600694444))
