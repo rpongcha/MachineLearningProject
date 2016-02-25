@@ -19,6 +19,7 @@ class RBMRandomForestStrategy(BaseStrategy):
         data = ut.read_price_from_csv(symbol, self.data_point)
         # assign time stamp
         self.__time__ = [ut.convert_to_time(i) for i in data[:, 0]]
+        # self.__time__ = data[:, 0]
         # assign prices
         self.__bars__ = data[:, 1]
         # read from file

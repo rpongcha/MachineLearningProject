@@ -67,7 +67,7 @@ class RBMRandomForestPortfolio(BasePortfolio):
                         curr_pos+=self.portfolio['signals'][i]*self.purchasing_size
                         curr_margin=curr_pos*self.maint_margin
                 # if a selling signal, need to have previously purchase of the futures
-                elif ((self.portfolio['signals'][i]<0) and (curr_pos >0)):
+                elif ((self.portfolio['signals'][i] < 0) and (curr_pos > 0)):
                     curr_pos+=self.portfolio['signals'][i]*self.purchasing_size
                     curr_margin=curr_pos*self.maint_margin
         self.portfolio['portfolio']=account
@@ -77,20 +77,14 @@ class RBMRandomForestPortfolio(BasePortfolio):
         self.portfolio['returns'] = self.portfolio['portfolio'].pct_change()
         return self.portfolio
 
-    def calculate_sharpe_ratio(self, bmk):
+    def calculate_sharpe_ratio(self):
         """
         calculate Sharpe Ratio against input benchmark
         :param bmk:
         :return:
         """
-        bmk_table = pd.DataFrame([])
-        bmk_table['bmk'] = bmk
-        bmk_table['returns'] = bmk_table['bmk'].pct_change().fillna(0.0)
-        self.portfolio['bmk_returns'] = pd.DataFrame(bmk_table['returns'],
-                                                     index=self.portfolio.index).fillna(0.0)
-        self.portfolio['excess_return'] = self.portfolio["returns"] - self.portfolio['bmk_returns']
-        sharpe_ratio = self.portfolio['excess_return'].mean() / \
-                       self.portfolio['excess_return'].std() * math.sqrt(252)
+        sharpe_ratio = self.portfolio['returns'].mean() / \
+                       self.portfolio['returns'].std() * math.sqrt(252)
         return sharpe_ratio
 
 
