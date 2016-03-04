@@ -1,66 +1,50 @@
 import csv
 import glob
 import numpy as np
+import pandas as pd
+import os
+import sys
 import datetime as dt
-import time as tm
 
-
-def read_price_from_csv(key, data_point, bottom=True):
-    prices = np.zeros((data_point, 2))
-    filename = 'data/'+key+'*.csv'
+def read_price_from_csv(key, data_point, i,bottom=True):
+    prices = []
+    filename = os.path.join(os.path.expanduser('~'), 'RA', 'MachineLearningProject','data','csv', key +'*.csv')
     filenames = glob.glob(filename)
 
     if len(filenames) >= 1:
         filename = filenames[0]
         with open(filename, 'rb') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
+            reader = csv.reader(csvfile, delimiter=',',quoting=csv.QUOTE_NONNUMERIC)
             rows = list(reader)
-
-            start = len(rows) - data_point if bottom else 0
-            end = len(rows) if bottom else data_point
-            cnt = 0
-            for i in range(start, end):
-                if cnt < data_point:
-                    prices[cnt, 0] = float(rows[i][0])
-                    prices[cnt, 1] = float(rows[i][1])
-                    cnt += 1
+            if bottom:
+                start = -25000+1000*i
+                prices = np.array(rows[start:start+12500])
+            else:
+                prices = np.array(rows[0:data_point])
+            prices = np.transpose(prices)
 
     return prices
 
-
-def read_signals_from_file(key, data_point):
-    signals = np.zeros((data_point, 2))
-
-    filename = 'PRED_'+key+'*.csv'
+def read_signals_from_file(key, data_point, i):
+    
+    filename = os.path.join(os.path.expanduser('~'), 'RA', 'MachineLearningProject', 'data','random_forest',key +'_'+str(i)+'*')
     filenames = glob.glob(filename)
 
     if len(filenames) >= 1:
         filename = filenames[0]
         with open(filename, 'rb') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            rows = list(reader)
-            for i in range(len(rows)):
-                if i < data_point:
-                    signals[i, 0] = float(rows[i][0])
-                    signals[i, 1] = float(rows[i][1])
-
+            reader = csv.reader(csvfile, delimiter=',',quoting=csv.QUOTE_NONNUMERIC)
+            signals = np.array(list(reader))[:,1:]
     return signals
-
-
-def file_exists(directory, key_name):
-    full_filename = directory+"/"+key_name
-    filenames = glob.glob(full_filename)
-    exists = (len(filenames) >= 1)
-    return exists
-
-
+    
 def convert_to_time(timestamp):
     temp = dt.timedelta(timestamp)
     time = dt.datetime(0001, 1, 1) + dt.timedelta(days=temp.days) + dt.timedelta(seconds=temp.seconds)
     # time = tm.gmtime(dt.timedelta(timestamp).seconds)
-    return time.strftime("%Y/%m/%d %H:%M:%S.%f")
+    #return time.strftime("%Y/%m/%d %H:%M:%S.%f")
+    return time
+    
 
 if __name__ == '__main__':
-    # print(read_price_from_csv('AD', 12500))
-    # print(read_signals_from_file('AD', 12500))
-    print(convert_to_time(726835.600694444))
+    print(read_price_from_csv('NG', 12500,1))
+    print(read_signals_from_file('NG', 12500,1))[:10]

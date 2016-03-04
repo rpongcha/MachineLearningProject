@@ -1,4 +1,4 @@
-#
+ #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -33,17 +33,17 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
 import csv
 import os
-
+import pandas as pd
 #np.set_printoptions(edgeitems=30)
 
 params = dict(
-    path = os.path.join(os.path.expanduser('~'), 'data', 'smallHybrid', '*'), 
-    n_row = 50000,
-    frac_train = 0.75, # fraction of dataset used for train. 1 - frac_train is used for test.
-    n_symbol = 1,
-    feature_reduction = 500, # No. features after PCA. Change this value to an int value to conduct PCA on feature set.
-    n_estimator = 100, # No. estimators for RandomForestClassifier
-    criterion = 'entropy'
+#path = os.path.join(os.path.expanduser('~'), 'RA','MachineLearningProject', 'data', 'smallBinaryPrice',asset_symbol+'*'), 
+n_row = 50000,
+frac_train = 0.5, # fraction of dataset used for train. 1 - frac_train is used for test.
+n_symbol = 1,
+feature_reduction = 0, # No. features after PCA. Change this value to an int value to conduct PCA on feature set.
+n_estimator = 100, # No. estimators for RandomForestClassifier
+criterion = 'entropy'
 )
 
 def load_data(file_path):
@@ -92,7 +92,7 @@ def load_data(file_path):
     print("y", y.shape)
     return x, y
 
-def train_test_split(x, y):
+def train_test_split(x, y, i):
     '''
     split x and y into x_train, x_test, y_train, y_test
 
@@ -100,12 +100,14 @@ def train_test_split(x, y):
     :param y: numpy ndarray
     :return: x_train, x_test, y_train, y_test
     '''
-
-    splitIndex=math.floor(params['frac_train']*params['n_row'])
-    y_test = y[splitIndex:]
-    y_train = y[:splitIndex]
-    x_test = x[splitIndex:]
-    x_train = x[:splitIndex]
+    
+    startindex=1000*i
+    splitIndex=1000*i+math.floor(params['frac_train']*params['n_row'])
+    endindex = splitIndex+math.floor(params['frac_train']*params['n_row']*0.5)
+    y_test = y[splitIndex:endindex]
+    y_train = y[startindex:splitIndex]
+    x_test = x[splitIndex:endindex]
+    x_train = x[startindex:splitIndex]
 
     print("DIMENSIONS")
     print("x_test", x_test.shape)
@@ -153,10 +155,21 @@ def print_f1_score(y_test, y_pred):
     y_test = y_test.ravel()
 
     #Total f1score
-    print("macro", f1_score(y_test, y_pred, average='macro'))
-    print("micro", f1_score(y_test, y_pred, average='micro'))
-    print("weighted", f1_score(y_test, y_pred, average='weighted'))
-    print(classification_report(y_test, y_pred))
+    macro_f1= f1_score(y_test, y_pred, average='macro')
+    micro_f1= f1_score(y_test, y_pred, average='micro')
+    weighted_f1=f1_score(y_test, y_pred, average='weighted')
+    print("macro", macro_f1)
+    print("micro", micro_f1)
+    print("weighted", weighted_f1)
+    score1 = pd.DataFrame({'macro':[macro_f1],'micro':[micro_f1],'weighted':[weighted_f1]})
+    
+    class_report = classification_report(y_test, y_pred)
+    print(class_report)
+    report_list=class_report.splitlines()
+    report_list[-1]=report_list[-1][:3]+report_list[-1][4]+report_list[-1][6:]
+    report_list=[row.split() for row in report_list]
+    score2 = pd.DataFrame({'-1':[float(report_list[2][3])],'0':[float(report_list[3][3])],'1':[float(report_list[4][3])],'avg/total':[float(report_list[6][3])]})
+    return score1, score2
 
 def classification_error(y_test, y_pred):
     y_test = y_test.ravel()
@@ -172,26 +185,27 @@ def classification_error(y_test, y_pred):
     print("Classification error")
     print("correct:", correct)
     print("total:", total)
-    print(correct / total)
+    print("correct/total",float(correct) / total)
+    return pd.DataFrame({"correct": [correct],"total": [total],'correct/total':[float(correct) / total]})
 
+def process_machine_learning(symbol, i):
+    params['path']=os.path.join(os.path.expanduser('~'), 'RA','MachineLearningProject', 'data', 'smallBinaryPrice',symbol+'*')
+    
+    x,y = load_data(params['path'])
+    if params['feature_reduction']:
+        x = pca(x)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, i)
+    y_pred = random_forest(x_train, x_test, y_train, y_test)
 
+    signal_pd = pd.DataFrame({'y_test':y_test[:,0],'y_pred':y_pred})
+    signal_pd.to_csv(os.path.join(os.path.expanduser('~'), 'RA','MachineLearningProject', 'data', 'random_forest',symbol+'_'+str(i)+'.csv'),header = False)
+
+    
 if __name__ == "__main__":
     
     #log = open('../../log/pca_rf', 'w')
     #sys.stdout = log
-
-    x,y = load_data(params['path'])
-    if params['feature_reduction']:
-        x = pca(x)
-    x_train, x_test, y_train, y_test = train_test_split(x, y)
-    y_pred = random_forest(x_train, x_test, y_train, y_test)
-    filename = 'PRED_AD-5.csv'
-    with open(filename, 'wb') as csvfile:
-        writer = csv.writer(csvfile, delimiter=',')
-        for i in range(len(y_pred)):
-            writer.writerow((y_pred[i], y_test[i][0]))
-
-    print_f1_score(y_test, y_pred)
-    classification_error(y_test, y_pred) 
+    signals, report = process_machine_learning('NG',10)
+    print report
    
     #log.close()
