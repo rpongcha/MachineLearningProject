@@ -26,4 +26,5 @@ class BasePortfolio(object):
         other classes/functions."""
         raise NotImplementedError("Should implement backtest_portfolio()!")
 
-"""test comment!!!!
+"""test comment!!!!"""
+"""Add another comment line"""
